@@ -843,8 +843,6 @@ void killPlayer(struct snake* somePlayer)
 
     somePlayer->active = 0;
     somePlayer->dying = 0;
-    somePlayer->head->x = -100;
-    somePlayer->head->y = -100;
     somePlayer->dir = 0;
 }
 
@@ -856,7 +854,7 @@ void eraseSnake(struct location* snakeHead)
     }
 
     slPrint(" ", slLocate(snakeHead->x, snakeHead->y));
-    free(snakeHead); // gives me weird errors
+    free(snakeHead);
 }
 
 void initializeFood(struct food* theFood, char theShape)
