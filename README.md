@@ -1,5 +1,5 @@
 ## Twelve Snakes
-Twelve Snakes is a 12-player text-mode Snake clone for the Sega Saturn. Requires a modded Saturn or another method to get code running. Build the code with joengine or grab an ISO from releases.
+Twelve Snakes is a 12-player text-mode Snake clone for the Sega Saturn. Requires a modded Saturn or another method to get code running. Build the code with joengine or grab an ISO from [releases](https://github.com/slinga-homebrew/Twelve-Snakes/releases).
 
 The resolution of the game has been changed to support wide screen televisions:
 - Use the zoom feature (not 16:9) in your television
