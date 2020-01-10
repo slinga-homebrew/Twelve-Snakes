@@ -90,8 +90,8 @@ struct options
     int maxScore;
     int maxTime;
     int slowdown; // factor used to adjust the speed of the game
-    
-    int startTime; // what time in seconds the game was started    
+
+    int startTime; // what time in seconds the game was started
     int joinTimeStopped; // no longer allowed to join the game
     int suddenDeath; // are we in sudden death mode for Battle Royale
 };
@@ -108,7 +108,7 @@ struct sudden_death_grid
 {
     int lastX;
     int lastY;
-    int count;    
+    int count;
     int dir;
     char grid[MAX_SUDDEN_DEATH_X][MAX_SUDDEN_DEATH_X];
 };
@@ -188,18 +188,18 @@ int g_DisplayedSSMTF = 0;
 void jo_main(void)
 {
     int i = 0;
-    Uint16 data = 0;    
+    Uint16 data = 0;
     struct snake players[MAX_PLAYERS] = {0};
     struct food theFood = {0};
     struct options gameOptions = {0};
     struct sudden_death_grid deathGrid = {0};
-    
+
     int redrawGrid = 0;
     int gameEnded = 0;
 
     // Initializing functions
     slInitSystem(TV_320x240, NULL, 1); // Initializes screen
-    
+
     if(g_DisplayedSSMTF == 0)
     {
         //displaySSMTFPresents(); // SSMTF logo
@@ -215,8 +215,8 @@ void jo_main(void)
         //
         // Prompt the player for game mode and options
         //
-        displayMenu(&gameOptions); 
-        
+        displayMenu(&gameOptions);
+
         //
         // Initialize game specific things
         //
@@ -225,14 +225,14 @@ void jo_main(void)
         initializePlayerNumbers(players);
         memset(&deathGrid, 0, sizeof(deathGrid));
         clearScore(players);
-        
+
         gameOptions.startTime = getSeconds();
-        
+
         //
         // Game play loop
         //
         do
-        {      
+        {
             //
             // Check for special player one commands
             //
@@ -241,12 +241,12 @@ void jo_main(void)
             //
             // Draw existing players
             //
-            for(i = 0; i < MAX_PLAYERS; i++)       
-            {            
+            for(i = 0; i < MAX_PLAYERS; i++)
+            {
                 data = Smpc_Peripheral[players[i].controllerNum].data;
 
                 // Check if player pressed the A button and is not already playing
-                if((data & PER_DGT_TA) != 0 && players[i].active == 0)
+                if((data & PER_DGT_TA) == 0 && players[i].active == 0)
                 {
                     initializePlayer(&players[i], &gameOptions);
                 }
@@ -256,33 +256,33 @@ void jo_main(void)
                     drawSnake(&players[i]);
                 }
             }
-            
+
             if(gameOptions.suddenDeath == 1)
             {
                 drawSuddenDeathGrid(&deathGrid);
             }
-            
+
             //
             // After all players have moved, check for collisions
             //
             for(i = 0; i < MAX_PLAYERS; i++)
-            {          
+            {
                 if(players[i].active == 1)
                 {
                     checkForCollisions(&players[i], players);
                 }
             }
-            
+
             if(gameOptions.suddenDeath == 1)
             {
                 checkForSuddenDeathCollisions(players, &gameOptions, &deathGrid);
             }
-            
+
             //
             // Kill snakes that are marked for death
             //
             for(i = 0; i < MAX_PLAYERS; i++)
-            {          
+            {
                 if(players[i].active == 1 && players[i].dying == 1)
                 {
                     killPlayer(&players[i]);
@@ -294,7 +294,7 @@ void jo_main(void)
             // Draw the food
             //
             drawFood(&theFood, players);
-                        
+
             //
             // Draw the grid again in case a Snake crashed into it
             //
@@ -303,7 +303,7 @@ void jo_main(void)
                 redrawGrid = 0;
                 redrawScreen(players, &theFood, &deathGrid);
             }
-            
+
             // display the score bar and check for end of game conditions
             gameEnded = displayScoreBar(players, &gameOptions);
             if(gameEnded == 1)
@@ -311,12 +311,12 @@ void jo_main(void)
                 clearScreen();
                 displayScore(players, &gameOptions);
                 pressStart(players, &gameOptions);
-                jo_main();                
+                jo_main();
             }
-            
+
             // "Press A to Join"
             displayJoinText(players, &gameOptions);
-            
+
             //
             // synch the screen
             //
@@ -327,13 +327,13 @@ void jo_main(void)
             }
 
         }while(1); // game loop
-    
+
     }while(1); // game type loop
 }
 
 void initializePlayerNumbers(struct snake* players)
 {
-    for(int i = 0; i < MAX_PLAYERS; i++)       
+    for(int i = 0; i < MAX_PLAYERS; i++)
     {
         int controllerNum = 0;
 
@@ -348,7 +348,7 @@ void initializePlayerNumbers(struct snake* players)
             // the controllerNum is offset
             controllerNum = i + PORT_TWO;
         }
-        
+
         players[i].ID = i;
         players[i].controllerNum = controllerNum;
     }
@@ -359,47 +359,47 @@ int isAllowedToSpawn(struct snake* somePlayer, struct options* gameOptions)
     //
     // Do not let the player spawn if:
     // - they are playing a game type with lives and have run out
-    // - they didn't spawn in the first 30s a 
+    // - they didn't spawn in the first 30s a
     //
-    
+
     switch(gameOptions->gameType)
-    {        
+    {
         case GAME_FREE_FOR_ALL:
         case GAME_SURVIVOR:
         case GAME_KING_OF_THE_HILL:
         case GAME_SCORE_ATTACK:
-            // FFA, Survivor, and KOTH, SA always allow spawning            
+            // FFA, Survivor, and KOTH, SA always allow spawning
             return 1;
-            break;            
-        
+            break;
+
         case GAME_BATTLE_ROYALE:
-            
+
             if(gameOptions->suddenDeath == 1)
             {
                 // don't allow spawning in sudden death
                 return 0;
             }
-            
+
             // don't allow spawning if the player is out of lives
             if(somePlayer->numDeaths >= gameOptions->maxLives)
             {
                 return 0;
             }
-            
+
             return 1;
-            break;        
+            break;
     }
-    
-    return 0;    
+
+    return 0;
 }
 
 void initializePlayer(struct snake* somePlayer, struct options* gameOptions)
-{   
+{
     if(isAllowedToSpawn(somePlayer, gameOptions) == 0)
     {
         return;
     }
-    
+
     // Create player
     if(somePlayer->active != 1)
     {
@@ -459,12 +459,12 @@ void initializePlayer(struct snake* somePlayer, struct options* gameOptions)
         }
 
         somePlayer->shape[1] = '\0';
-    
+
         // allocate three segments for the snake
         somePlayer->head = (struct location*)malloc(sizeof(struct location));
         somePlayer->head->next = (struct location*)malloc(sizeof(struct location));
         somePlayer->head->next->next= (struct location*)malloc(sizeof(struct location));
-     
+
         switch(somePlayer->ID)
         {
             case 0:
@@ -472,13 +472,13 @@ void initializePlayer(struct snake* somePlayer, struct options* gameOptions)
                 somePlayer->head->y = 9;
                 somePlayer->dir = 2;
                 break;
-                
+
             case 1:
                 somePlayer->head->x = 38;
                 somePlayer->head->y = 21;
                 somePlayer->dir = 3;
                 break;
-                
+
             case 2:
                 somePlayer->head->x = 1;
                 somePlayer->head->y = 21;
@@ -501,20 +501,20 @@ void initializePlayer(struct snake* somePlayer, struct options* gameOptions)
                 somePlayer->head->x = 38;
                 somePlayer->head->y = 15;
                 somePlayer->dir = 3;
-                break;        
-                
+                break;
+
             case 6:
                 somePlayer->head->x = 29;
                 somePlayer->head->y = 24;
                 somePlayer->dir = 0;
                 break;
-                
+
             case 7:
                 somePlayer->head->x = 9;
                 somePlayer->head->y = 6;
                 somePlayer->dir = 1;
                 break;
-                
+
             case 8:
                 somePlayer->head->x = 9;
                 somePlayer->head->y = 24;
@@ -526,36 +526,36 @@ void initializePlayer(struct snake* somePlayer, struct options* gameOptions)
                 somePlayer->head->y = 6;
                 somePlayer->dir = 1;
                 break;
-                
+
             case 10:
                 somePlayer->head->x = 19;
                 somePlayer->head->y = 24;
                 somePlayer->dir = 0;
-                break;                
+                break;
 
             case 11:
                 somePlayer->head->x = 19;
                 somePlayer->head->y = 6;
                 somePlayer->dir = 1;
                 break;
-        }            
+        }
 
         // Initiate rest of snake to offscreen positions
         somePlayer->head->next->x = OFF_SCREEN;
-        somePlayer->head->next->y = OFF_SCREEN;          
+        somePlayer->head->next->y = OFF_SCREEN;
 
         somePlayer->head->next->next->x = OFF_SCREEN;
         somePlayer->head->next->next->y = OFF_SCREEN;
-        
+
         somePlayer->head->next->next->next = NULL;
         somePlayer->tail = somePlayer->head->next->next;
-                
+
         somePlayer->currLength = 3;
         if(somePlayer->currLength > somePlayer->maxLength)
         {
             somePlayer->maxLength = somePlayer->currLength;
         }
-        
+
         somePlayer->active = 1;
         somePlayer->everActive = 1;
         somePlayer->dying = 0;
@@ -568,12 +568,12 @@ void initializePlayer(struct snake* somePlayer, struct options* gameOptions)
 void checkPlayerOneCommands(struct snake* players, struct food* theFood, struct options* gameOptions, struct sudden_death_grid* deathGrid)
 {
     Uint16 data = 0;
-    
+
     // Read the 1st player controller
     data = Smpc_Peripheral[0].data;
-    
+
     checkForABCStart();
-    
+
     // Did player decrease game speed
     if((data & PER_DGT_TL) == 0)
     {
@@ -591,7 +591,7 @@ void checkPlayerOneCommands(struct snake* players, struct food* theFood, struct 
         if(gameOptions->slowdown < MIN_SLOWDOWN)
         {
             gameOptions->slowdown = MIN_SLOWDOWN;
-        }        
+        }
     }
 
     // Does the user want to see the score
@@ -608,7 +608,7 @@ void checkPlayerOneCommands(struct snake* players, struct food* theFood, struct 
     if((data & PER_DGT_TZ) == 0)
     {
         clearScore(players);
-    }    
+    }
 }
 
 void drawGrid()
@@ -778,17 +778,15 @@ void drawGrid()
 
 void checkForSuddenDeathCollisions(struct snake* players, struct options* gameOptions, struct sudden_death_grid* deathGrid)
 {
-    
-    // TODO: check for collision with Melee sudden death
     if(gameOptions->gameType != GAME_BATTLE_ROYALE || gameOptions->suddenDeath != 1)
     {
         return;
     }
-        
+
     for(int i = 0; i < MAX_PLAYERS; i++)
     {
         struct snake* someSnake = &players[i];
-        
+
         if(deathGrid->grid[someSnake->head->x - MIN_X][someSnake->head->y - MIN_Y] != 0)
         {
             someSnake->dying = 1;
@@ -801,7 +799,7 @@ void drawSuddenDeathGrid(struct sudden_death_grid* deathGrid)
 {
     int newX = 0;
     int newY = 0;
-    
+
     // check if this is the first time we are calling this
     if(deathGrid->count == 0)
     {
@@ -809,52 +807,52 @@ void drawSuddenDeathGrid(struct sudden_death_grid* deathGrid)
         deathGrid->lastX = 0;
         deathGrid->lastY = -1;
     }
-    
+
     switch(deathGrid->dir)
     {
         case DIR_DOWN:
             newX = deathGrid->lastX;
             newY = deathGrid->lastY + 1;
-            break;            
+            break;
         case DIR_UP:
             newX = deathGrid->lastX;
             newY = deathGrid->lastY - 1;
-            break;            
+            break;
         case DIR_LEFT:
             newX = deathGrid->lastX - 1;
             newY = deathGrid->lastY;
-            break;            
+            break;
         case DIR_RIGHT:
             newX = deathGrid->lastX + 1;
             newY = deathGrid->lastY;
             break;
     }
-    
+
     if(newX < 0 || newX > MAX_X - MIN_X)
-    {  
+    {
         changeSuddenDeathDir(deathGrid);
         return;
     }
-    
+
     if(newY < 0 || newY > MAX_Y - MIN_Y)
-    {  
+    {
         changeSuddenDeathDir(deathGrid);
         return;
     }
-    
+
     if(deathGrid->grid[newX][newY] == 'X')
     {
         // grid is occupied, try again
         changeSuddenDeathDir(deathGrid);
         return;
     }
-    
+
     deathGrid->grid[newX][newY] = 'X';
-    
+
     deathGrid->lastX = newX;
     deathGrid->lastY = newY;
-    
-    slPrint("X", slLocate(deathGrid->lastX + MIN_X, deathGrid->lastY + MIN_Y));    
+
+    slPrint("X", slLocate(deathGrid->lastX + MIN_X, deathGrid->lastY + MIN_Y));
     deathGrid->count++;
 }
 
@@ -864,53 +862,53 @@ int changeSuddenDeathDir(struct sudden_death_grid* deathGrid)
     {
         case DIR_DOWN:
             deathGrid->dir = DIR_RIGHT;
-            break;            
+            break;
         case DIR_UP:
             deathGrid->dir = DIR_LEFT;
-            break;            
+            break;
         case DIR_LEFT:
             deathGrid->dir = DIR_DOWN;
-            break;            
+            break;
         case DIR_RIGHT:
             deathGrid->dir = DIR_UP;
             break;
     }
-    
+
     return 0;
 }
 
 void checkForCollisions(struct snake* someSnake, struct snake* players)
 {
     struct location* temp = NULL;
-    
+
     // Check collision with ceiling
     if(someSnake->head->y < MIN_Y && someSnake->dir != DIR_DOWN)
     {
         someSnake->dying = 1;
         return;
     }
-    
+
     // Check collision with floor
     if(someSnake->head->y > MAX_Y && someSnake->dir != DIR_UP)
     {
-        someSnake->dying = 1;        
-        return;
-    }    
-    
-    // Check collision with left wall    
-    if(someSnake->head->x < MIN_X && someSnake->dir != DIR_RIGHT)
-    {
-        someSnake->dying = 1;        
+        someSnake->dying = 1;
         return;
     }
-    
+
+    // Check collision with left wall
+    if(someSnake->head->x < MIN_X && someSnake->dir != DIR_RIGHT)
+    {
+        someSnake->dying = 1;
+        return;
+    }
+
     // Check collision with right wall
     if(someSnake->head->x > MAX_X && someSnake->dir != DIR_LEFT)
     {
-        someSnake->dying = 1;        
+        someSnake->dying = 1;
         return;
     }
-    
+
     // Check for collisions with yourself and other players
     for(int i = 0; i < MAX_PLAYERS; i++)
     {
@@ -933,19 +931,19 @@ void checkForCollisions(struct snake* someSnake, struct snake* players)
                 {
                     // check for head-on collision
                     if(temp == players[i].head || temp == players[i].head->next)
-                    {   
+                    {
                         // if Snake is at least twice as big eat the other snake
                         if(someSnake->currLength >= players[i].currLength * 2)
                         {
-                            players[i].dying = 1;                            
+                            players[i].dying = 1;
                             someSnake->numPlayersEaten++;
-                            
+
                             // consome the other snake
                             growSnake(someSnake, players[i].currLength);
-                            return;                            
+                            return;
                         }
-                    }                    
-                    
+                    }
+
                     someSnake->dying = 1;
 
                     if(someSnake->ID != players[i].ID)
@@ -968,8 +966,8 @@ void drawSnake(struct snake* someSnake)
     struct location* temp = NULL;
 
     // Checks the controller for input
-    data = Smpc_Peripheral[someSnake->controllerNum].data;     
-    
+    data = Smpc_Peripheral[someSnake->controllerNum].data;
+
     // Check vertical movement
     if((data & PER_DGT_KD)== 0)
     {
@@ -1016,7 +1014,7 @@ void drawSnake(struct snake* someSnake)
     {
         slPrint(" ", slLocate(someSnake->tail->x, someSnake->tail->y));
     }
-    temp->next = NULL;   
+    temp->next = NULL;
 
     // Calc snake's new position
     if(someSnake->dir == DIR_UP)
@@ -1077,7 +1075,7 @@ void displaySSMTFPresents()
 
 void displayText()
 {
-    slPrint("Twelve Snakes Version 3.0.0 by Slinga", slLocate(1,1));   
+    slPrint("Twelve Snakes Version 3.0.0 by Slinga", slLocate(1,1));
 }
 
 void displayJoinText(struct snake* players, struct options* gameOptions)
@@ -1090,8 +1088,8 @@ void displayJoinText(struct snake* players, struct options* gameOptions)
             slPrint("Press A to join", slLocate(1,2));
             return;
         }
-    }    
-    
+    }
+
     // no more players can join, erase the text
     slPrint("               ", slLocate(1,2));
 }
@@ -1099,10 +1097,10 @@ void displayJoinText(struct snake* players, struct options* gameOptions)
 // Displays the text "Press Start" and waits for the user to hit start
 void pressStart(struct snake* players, struct options* gameOptions)
 {
-    Uint16 data;    
-    
+    Uint16 data;
+
     do{
-        data = Smpc_Peripheral[0].data; // Checks if start button has been pressed        
+        data = Smpc_Peripheral[0].data; // Checks if start button has been pressed
         slSynch();
 
     }while((data & PER_DGT_ST) == 0);
@@ -1110,7 +1108,7 @@ void pressStart(struct snake* players, struct options* gameOptions)
     do{
         data = Smpc_Peripheral[0].data; // Checks if start button has been pressed
         slPrint("Press Start", slLocate(15, 23));
-        
+
         // check if the user cleared the scores
         if((data & PER_DGT_TZ) == 0)
         {
@@ -1118,23 +1116,23 @@ void pressStart(struct snake* players, struct options* gameOptions)
             {
                 clearScore(players);
                 displayScore(players, gameOptions);
-            }                
-        }        
-        
+            }
+        }
+
         checkForABCStart();
-        
+
         slSynch();
         slSynch();
         slSynch();
 
     }while((data & PER_DGT_ST) != 0);
-    
+
     // hack in case the user is already holding down the start button
     // first check if the start button is pressed, now wait for it to be released
     do{
-        data = Smpc_Peripheral[0].data; // Checks if start button has been pressed        
+        data = Smpc_Peripheral[0].data; // Checks if start button has been pressed
         slSynch();
-    
+
     }while((data & PER_DGT_ST) == 0);
 }
 
@@ -1142,7 +1140,7 @@ void killPlayer(struct snake* somePlayer)
 {
     // erase Snake
     eraseSnake(somePlayer->head);
-    
+
     // You died, so increase your deaths
     somePlayer->numDeaths++;
     somePlayer->currLength = 0;
@@ -1170,8 +1168,8 @@ void initializeFood(struct food* theFood, char theShape)
 {
     // Shape, and initial position of food
     theFood->shape[0] = theShape;
-    theFood->shape[1] = '\0';    
-    
+    theFood->shape[1] = '\0';
+
     theFood->x = (rand()%(MAX_X - MIN_X + 1)) + MIN_X;
     theFood->y = (rand()%(MAX_Y - MIN_Y + 1)) + MIN_Y;
 
@@ -1199,19 +1197,19 @@ void drawFood(struct food* theFood, struct snake* players)
                 }while(safeFood(theFood, players) != 1);
 
                 slPrint(theFood->shape, slLocate(theFood->x, theFood->y));
-                
+
                 // Add a new segment, make that segment the tail
                 growSnake(&players[i], 1);
 
                 // You ate the apple, increase your score
                 players[i].numApples++;
-                
-                
+
+
                 if(players[i].currLength > players[i].maxLength)
                 {
                     players[i].maxLength = players[i].currLength;
-                }                
-                
+                }
+
                 return;
             }
         }
@@ -1221,17 +1219,17 @@ void drawFood(struct food* theFood, struct snake* players)
 void growSnake(struct snake* player, int amount)
 {
     struct location* temp = NULL;
-    
+
     for(int i = 0; i < amount; i++)
     {
         temp = (struct location*)malloc(sizeof(struct location));
-    
+
         player->tail->next = temp;
         temp->x = OFF_SCREEN;
         temp->y = OFF_SCREEN;
         temp->next = NULL;
-        
-        player->tail = temp;        
+
+        player->tail = temp;
         player->currLength++;
     }
 }
@@ -1286,22 +1284,22 @@ void validateScore(struct snake* players, struct options* gameOptions)
     {
         players[i].numApples = MIN(players[i].numApples, MAX_SCORE);
         players[i].numApples = MAX(players[i].numApples, MIN_SCORE);
-        
+
         players[i].numDeaths = MIN(players[i].numDeaths, MAX_SCORE);
         players[i].numDeaths = MAX(players[i].numDeaths, MIN_SCORE);
-        
+
         players[i].numKills = MIN(players[i].numKills, MAX_SCORE);
         players[i].numKills = MAX(players[i].numKills, MIN_SCORE);
-        
+
         players[i].numPlayersEaten = MIN(players[i].numPlayersEaten, MAX_SCORE);
         players[i].numPlayersEaten = MAX(players[i].numPlayersEaten, MIN_SCORE);
-        
+
         players[i].currLength = MIN(players[i].currLength, MAX_SCORE);
         players[i].currLength = MAX(players[i].currLength, MIN_SCORE);
-        
+
         players[i].maxLength = MIN(players[i].maxLength, MAX_SCORE);
         players[i].maxLength = MAX(players[i].maxLength, MIN_SCORE);
-        
+
         if(gameType == GAME_FREE_FOR_ALL || gameType == GAME_SCORE_ATTACK)
         {
             players[i].score = players[i].numApples + players[i].numKills - players[i].numDeaths;
@@ -1322,31 +1320,31 @@ void validateScore(struct snake* players, struct options* gameOptions)
         }
     }
 }
-     
+
 /* Function to sort an array using insertion sort*/
-void insertionSort(struct snake* players) 
-{ 
-    int i, j; 
+void insertionSort(struct snake* players)
+{
+    int i, j;
     struct snake key = {0};
-    for (i = 1; i < MAX_PLAYERS; i++) { 
-        key = players[i]; 
-        j = i - 1; 
-  
-        /* Move elements of arr[0..i-1], that are 
-          greater than key, to one position ahead 
+    for (i = 1; i < MAX_PLAYERS; i++) {
+        key = players[i];
+        j = i - 1;
+
+        /* Move elements of arr[0..i-1], that are
+          greater than key, to one position ahead
           of their current position */
-        while (j >= 0 && players[j].score < key.score) { 
+        while (j >= 0 && players[j].score < key.score) {
             players[j + 1] = players[j];
-            j = j - 1; 
-        } 
-        players[j + 1] = key; 
-    } 
+            j = j - 1;
+        }
+        players[j + 1] = key;
+    }
 }
 
 int calculatePlayersRemaining(struct snake* players, struct options* gameOptions)
 {
     int count = 0;
-    
+
     for(int i = 0; i < MAX_PLAYERS; i++)
     {
         // if the player is alive currently, count them
@@ -1355,20 +1353,20 @@ int calculatePlayersRemaining(struct snake* players, struct options* gameOptions
             count++;
             continue;
         }
-        
+
         // if the player was ever active, but still has lives count them as alive
         if(players[i].everActive == 1 && isAllowedToSpawn(&players[i], gameOptions) == 1)
         {
             count++;
-            continue;            
+            continue;
         }
     }
-    
+
     return count;
 }
 
 int displayScoreBar(struct snake* players, struct options* gameOptions)
-{   
+{
     int gameLimitReached = 0;
     int pointsRemaining = 0;
     int highScore = 0;
@@ -1379,31 +1377,31 @@ int displayScoreBar(struct snake* players, struct options* gameOptions)
     int timeDiff = 0;
     int currSeconds = 0;
     int counter = 0;
-    struct snake sortedPlayers[MAX_PLAYERS] = {0};        
+    struct snake sortedPlayers[MAX_PLAYERS] = {0};
     char temp[16] = {0};
-    
+
     // sort the player scores. The "score" field will be different depending on the game type
     validateScore(players, gameOptions);
     memcpy(sortedPlayers, players, sizeof(sortedPlayers));
     insertionSort(sortedPlayers);
-    
+
     // top left square is game options and points remaining
     switch(gameOptions->gameType)
     {
         case GAME_FREE_FOR_ALL:
-            
+
             // FFA game never ends, but display highest score
             highScore = sortedPlayers[0].score;
             if(highScore < 0)
             {
                 highScore = 0;
-            }            
-            
-            sprintf(temp, "%s %03i", "FFA", highScore);            
+            }
+
+            sprintf(temp, "%s %03i", "FFA", highScore);
             break;
-            
+
         case GAME_SCORE_ATTACK:
-            
+
             // game ends when score is reached
             // display points remainign
             pointsRemaining = gameOptions->maxScore - sortedPlayers[0].score;
@@ -1414,87 +1412,87 @@ int displayScoreBar(struct snake* players, struct options* gameOptions)
             }
             sprintf(temp, " %s %03i", "SA", pointsRemaining);
             break;
-            
+
         case GAME_BATTLE_ROYALE:
-            
-            // game ends when there is only one player left standing            
-            playersRemaining = calculatePlayersRemaining(players, gameOptions);            
-            
+
+            // game ends when there is only one player left standing
+            playersRemaining = calculatePlayersRemaining(players, gameOptions);
+
             if(playersRemaining <= 1)
             {
                 gameLimitReached = 1;
-            }            
+            }
             sprintf(temp, "%s %03i", "BR", playersRemaining);
             break;
-            
+
         case GAME_SURVIVOR:
             sprintf(temp, "%s %03i", "SRV", sortedPlayers[0].score);
             break;
-            
+
         case GAME_KING_OF_THE_HILL:
             sprintf(temp, "%s %03i", "KTH", sortedPlayers[0].score);
-            break;        
-    }    
+            break;
+    }
     slPrint(temp, slLocate(1,5));
-    
+
     // 2nd top square is for time remaining
     switch(gameOptions->gameType)
     {
         case GAME_FREE_FOR_ALL:
-            
+
             // Free-For-All timer counts up
-            currSeconds = getSeconds();            
+            currSeconds = getSeconds();
             timeDiff = currSeconds - gameOptions->startTime;
 
             mins = timeDiff / 60;
             secs = timeDiff % 60;
             break;
-            
+
         case GAME_BATTLE_ROYALE:
-            
+
             // Battle Royale games can't end before 15 seconds (to allow people to join in)
             // and once the timer hits, the game doesn't end but sudden death starts
             currSeconds = getSeconds();
             spawnTime = gameOptions->startTime + 15 - currSeconds;
             timeDiff = gameOptions->startTime + gameOptions->maxTime - currSeconds;
-    
+
             if(spawnTime > 0)
             {
                 // we cannot end the game before 15 seconds
                 gameLimitReached = 0;
             }
-            
+
             if(timeDiff <= 0)
-            {                
+            {
                 gameOptions->suddenDeath = 1;
                 timeDiff = 0;
             }
-            
+
             mins = timeDiff / 60;
             secs = timeDiff % 60;
             break;
-            
-        case GAME_SCORE_ATTACK:        
+
+        case GAME_SCORE_ATTACK:
         case GAME_SURVIVOR:
         case GAME_KING_OF_THE_HILL:
-            
+
             // all other game modes have a timer that counts down
             currSeconds = getSeconds();
             timeDiff = gameOptions->startTime + gameOptions->maxTime - currSeconds;
-            
+
             if(timeDiff <= 0)
             {
                 gameLimitReached = 1;
                 timeDiff = 0;
             }
-            
+
             mins = timeDiff / 60;
             secs = timeDiff % 60;
             break;
-    }    
+    }
     sprintf(temp, " %02i:%02i", mins, secs);
     slPrint(temp, slLocate(11,5));
-        
+
     // 3rd square is for ranking of top 7 players
     counter = 0;
     for(int i = 0; i < MAX_PLAYERS && counter < 7; i++)
@@ -1503,16 +1501,16 @@ int displayScoreBar(struct snake* players, struct options* gameOptions)
         {
             continue;
         }
-        
+
         sprintf(temp, "%c", sortedPlayers[i].shape[0]);
         slPrint(temp, slLocate(21 + i, 5));
-        counter++;        
-    }    
-    
+        counter++;
+    }
+
     // 4th square is for the slow down speed
     sprintf(temp, "SD %1i", gameOptions->slowdown);
-    slPrint(temp, slLocate(31,5));    
-    
+    slPrint(temp, slLocate(31,5));
+
     // bottom four areas are for the 4 highest scoring players
     counter = 0;
     for(int i = 0; i < MAX_PLAYERS && counter < 4; i++)
@@ -1521,13 +1519,13 @@ int displayScoreBar(struct snake* players, struct options* gameOptions)
         {
             continue;
         }
-        
+
         sprintf(temp, "%c%c%c %03i", sortedPlayers[i].shape[0], sortedPlayers[i].shape[0],
                                      sortedPlayers[i].shape[0], sortedPlayers[i].score);
         slPrint(temp, slLocate(1 + (counter*10), MAX_Y + 2));
-        counter++;        
+        counter++;
     }
-    
+
     return gameLimitReached;
 }
 
@@ -1536,25 +1534,28 @@ void displayMenu(struct options* gameOptions)
     int counter = 8;
     int cursorPosition = 0;
     int numOptions = 5;
+    int numSubOptions = 0;
+    int suboptionsResult = 0;
+    char* gameMode = NULL;
     struct suboptions subOptions[3] = {0}; // max number of options for subtype is 3
-    
-    memset(gameOptions, 0, sizeof(struct options));    
+
+    memset(gameOptions, 0, sizeof(struct options));
     gameOptions->slowdown = INITIAL_SLOWDOWN;
-    
+
     do
     {
         counter = 8;
-    
+
         slPrint("Select Game Mode", slLocate(4,counter++));
         slPrint("-------------------------------", slLocate(4,counter++));
         slPrint("                               ", slLocate(4,counter++));
-        
+
         slPrint("   Free For All", slLocate(4,counter++));
         slPrint("   Score Attack", slLocate(4,counter++));
         slPrint("   Battle Royale", slLocate(4,counter++));
         slPrint("   Survivor", slLocate(4,counter++));
         slPrint("   King of the Hill", slLocate(4,counter++));
-        
+
         do
         {
             // check if the user is selecting a different option
@@ -1563,52 +1564,49 @@ void displayMenu(struct options* gameOptions)
                 slPrint("  ", slLocate(4, 11 + cursorPosition));
                 cursorPosition++;
             }
-            
+
             if (jo_is_input_key_down(0, JO_KEY_UP))
             {
                 slPrint("  ", slLocate(4, 11 + cursorPosition));
                 cursorPosition--;
-            }        
-            
+            }
+
             if (jo_is_input_key_down(0, JO_KEY_START) ||
                 jo_is_input_key_down(0, JO_KEY_A) ||
                 jo_is_input_key_down(0, JO_KEY_C))
             {
                 break;
             }
-            
+
             if(cursorPosition < 0)
             {
                 cursorPosition = numOptions - 1;
             }
-            
+
             if(cursorPosition > 4)
             {
                 cursorPosition = 0;
             }
-            
+
             slPrint(">>", slLocate(4, 11 + cursorPosition));
-            slSynch();        
-            
-        }while(1);  
-            
+            slSynch();
+
+        }while(1);
+
         if(cursorPosition < GAME_FREE_FOR_ALL || cursorPosition > GAME_KING_OF_THE_HILL)
         {
             // impossible to get here
             cursorPosition = GAME_FREE_FOR_ALL;
         }
         gameOptions->gameType = cursorPosition;
-        
+
         // hack to clear the start press
         do
         {
             slSynch();
         }
         while(jo_is_input_key_pressed(0, JO_KEY_START));
-        
-        int numSubOptions; 
-        int suboptionsResult;
-        
+
         // depending on the game type, there are suboptions
         switch(gameOptions->gameType)
         {
@@ -1616,167 +1614,171 @@ void displayMenu(struct options* gameOptions)
                 // no options for free for allocate
                 numSubOptions = 0;
                 break;
-                
-            case GAME_SCORE_ATTACK:                
+
+            case GAME_SCORE_ATTACK:
                 numSubOptions = 3;
                 memcpy(&subOptions[0], &SUBOPTION_SCORE_LIMIT, sizeof(struct suboptions));
                 memcpy(&subOptions[1], &SUBOPTION_TIME_LIMIT, sizeof(struct suboptions));
                 memcpy(&subOptions[2], &SUBOPTION_SLOWDOWN, sizeof(struct suboptions));
+                gameMode = "Score Attack";
                 break;
-                
-            case GAME_SURVIVOR:                
+
+            case GAME_SURVIVOR:
                 numSubOptions = 2;
                 memcpy(&subOptions[0], &SUBOPTION_TIME_LIMIT, sizeof(struct suboptions));
                 memcpy(&subOptions[1], &SUBOPTION_SLOWDOWN, sizeof(struct suboptions));
+                gameMode = "Survivor";
                 break;
-                
+
             case GAME_KING_OF_THE_HILL:
                 numSubOptions = 2;
                 memcpy(&subOptions[0], &SUBOPTION_TIME_LIMIT, sizeof(struct suboptions));
                 memcpy(&subOptions[1], &SUBOPTION_SLOWDOWN, sizeof(struct suboptions));
+                gameMode = "King of the Hill";
                 break;
-                
+
             case GAME_BATTLE_ROYALE:
                 numSubOptions = 3;
                 memcpy(&subOptions[0], &SUBOPTION_LIVES_LIMIT, sizeof(struct suboptions));
                 memcpy(&subOptions[1], &SUBOPTION_TIME_LIMIT, sizeof(struct suboptions));
                 memcpy(&subOptions[2], &SUBOPTION_SLOWDOWN, sizeof(struct suboptions));
-                break;            
+                gameMode = "Battle Royale";
+                break;
         }
-        
+
         if(numSubOptions > 0)
         {
-            suboptionsResult = displaySubMenu(gameOptions, "Score Attack", numSubOptions, subOptions);
+            suboptionsResult = displaySubMenu(gameOptions, gameMode, numSubOptions, subOptions);
         }
         else
         {
             suboptionsResult = 1;
         }
-        
+
         if(suboptionsResult == 0)
         {
             // user hit B, continue
-            continue;   
+            continue;
         }
         else
         {
-            break;   
+            break;
         }
-    
+
     }while(1);
-    
-    clearScreen();    
+
+    clearScreen();
 }
 
 int displaySubMenu(struct options* gameOptions, char* gameMode, int numSubOptions, struct suboptions* subOptions)
 {
     int counter = 8;
-    int cursorPosition = 0;    
+    int cursorPosition = 0;
     char temp[32];
-    
+
     clearScreen();
-    
+
     do
     {
-        counter = 8;        
-        
+        counter = 8;
+
         sprintf(temp, "%s Options", gameMode);
         slPrint(temp, slLocate(4,counter++));
         slPrint("-------------------------------", slLocate(4,counter++));
         slPrint("                               ", slLocate(4,counter++));
-    
+
         for(int i = 0; i < numSubOptions; i++)
         {
             int pos = subOptions[i].position;
             sprintf(temp, "   %s %d %s   ", subOptions[i].optionName, subOptions[i].values[pos], subOptions[i].optionType);
             slPrint(temp, slLocate(4,counter++));
         }
-        
+
         if (jo_is_input_key_down(0, JO_KEY_B))
         {
             // user return B, back up to main menu
             clearScreen();
             return 0;
-        }         
-        
+        }
+
         // check if the user is selecting a different option
         if (jo_is_input_key_down(0, JO_KEY_DOWN))
         {
             slPrint("  ", slLocate(4, 11 + cursorPosition));
             cursorPosition++;
         }
-        
+
         if (jo_is_input_key_down(0, JO_KEY_UP))
         {
             slPrint("  ", slLocate(4, 11 + cursorPosition));
             cursorPosition--;
         }
-        
+
         if(cursorPosition < 0)
         {
             cursorPosition = numSubOptions -1;
         }
-        
+
         if(cursorPosition > numSubOptions -1)
         {
             cursorPosition = 0;
         }
-        
+
         // check if the user is selecting a different option
         if (jo_is_input_key_down(0, JO_KEY_LEFT))
         {
             subOptions[cursorPosition].position--;
         }
-        
+
         if (jo_is_input_key_down(0, JO_KEY_RIGHT))
         {
             subOptions[cursorPosition].position++;
         }
-        
+
         if(subOptions[cursorPosition].position < 0)
         {
             subOptions[cursorPosition].position = 0;
         }
-        
+
         if(subOptions[cursorPosition].position > MAX_SUBOPTION_VALUES -1)
         {
-            subOptions[cursorPosition].position = MAX_SUBOPTION_VALUES -1;            
+            subOptions[cursorPosition].position = MAX_SUBOPTION_VALUES -1;
         }
-        
+
         if (jo_is_input_key_down(0, JO_KEY_START) ||
             jo_is_input_key_down(0, JO_KEY_A) ||
             jo_is_input_key_down(0, JO_KEY_C))
         {
             break;
-        }        
-        
+        }
+
         slPrint(">>", slLocate(4, 11 + cursorPosition));
-        slSynch();        
-        
-    }while(1);  
-        
+        slSynch();
+
+    }while(1);
+
     if(cursorPosition < GAME_FREE_FOR_ALL || cursorPosition > GAME_KING_OF_THE_HILL)
     {
         // impossible to get here
         cursorPosition = GAME_FREE_FOR_ALL;
     }
     //gameOptions->gameType = cursorPosition;
-    
+
     // hack to clear the start press
     do
     {
         slSynch();
     }
     while(jo_is_input_key_pressed(0, JO_KEY_START));
-    
-    
+
+
     // user hit start, setup the game options
     for(int i = 0; i < numSubOptions; i++)
     {
         int pos = subOptions[i].position;
-        
+
         if(strcmp(subOptions[i].optionType, "min") == 0)
-        {            
+        {
             gameOptions->maxTime = subOptions[i].values[pos] * 60;
         }
         else if(strcmp(subOptions[i].optionType, "lives") == 0)
@@ -1791,23 +1793,23 @@ int displaySubMenu(struct options* gameOptions, char* gameMode, int numSubOption
         {
             gameOptions->slowdown = subOptions[i].values[pos];
         }
-    }    
-    
-    clearScreen();    
-    
+    }
+
+    clearScreen();
+
     return 1;
 }
 
 void checkForABCStart()
-{    
+{
     Uint16 data = 0;
-    
+
     // Read the 1st player controller
     data = Smpc_Peripheral[0].data;
-    
+
     // Did player one press ABC+Start?
-    if((data & PER_DGT_TA) == 0 && 
-       (data & PER_DGT_TB) == 0 && 
+    if((data & PER_DGT_TA) == 0 &&
+       (data & PER_DGT_TB) == 0 &&
        (data & PER_DGT_TC) == 0 &&
        (data & PER_DGT_ST) == 0)
     {
@@ -1824,11 +1826,11 @@ void displayScore(struct snake* players, struct options* gameOptions)
     int rank = 1;
 
     temp[0] = '\0';
-    
+
     validateScore(players, gameOptions);
-    
+
     memcpy(sortedPlayers, players, sizeof(sortedPlayers));
-    
+
     insertionSort(sortedPlayers);
 
     slPrint("R# CHR  L#  M#  A#  K#  C#  D#  S#", slLocate(3,counter++));
@@ -1844,7 +1846,7 @@ void displayScore(struct snake* players, struct options* gameOptions)
                                                                  sortedPlayers[i].currLength, sortedPlayers[i].maxLength, sortedPlayers[i].numApples,
                                                                  sortedPlayers[i].numKills, sortedPlayers[i].numPlayersEaten, sortedPlayers[i].numDeaths,
                                                                  sortedPlayers[i].score);
-            slPrint(temp, slLocate(3,counter++));            
+            slPrint(temp, slLocate(3,counter++));
             rank++;
         }
     }
@@ -1858,9 +1860,9 @@ void clearScreen()
     {
         slPrint("                                    ", slLocate(2,i));
     }
-    
+
     slPrint("                                    ", slLocate(1,2)); // Press A to join line
-    slPrint("                                    ", slLocate(2,26)); // dedication line    
+    slPrint("                                    ", slLocate(2,26)); // dedication line
 }
 
 void redrawScreen(struct snake* players, struct food* theFood, struct sudden_death_grid* deathGrid)
@@ -1887,9 +1889,9 @@ void redrawScreen(struct snake* players, struct food* theFood, struct sudden_dea
     }
 
     slPrint(theFood->shape, slLocate(theFood->x, theFood->y));
-    
+
     drawGrid();
-    
+
     redrawSuddenDeathGrid(deathGrid);
 }
 
@@ -1899,12 +1901,12 @@ void redrawSuddenDeathGrid(struct sudden_death_grid* suddenDeath)
 {
     if(suddenDeath->count == 0)
     {
-        return;   
+        return;
     }
-    
+
     for(int x = 0; x < MAX_SUDDEN_DEATH_X; x++)
     {
-        for(int y = 0; y < MAX_SUDDEN_DEATH_Y; y++)    
+        for(int y = 0; y < MAX_SUDDEN_DEATH_Y; y++)
         {
             if(suddenDeath->grid[x][y] == 'X')
             {
@@ -2005,7 +2007,7 @@ void titleScreen()
     slPrint("   S", slLocate(31,19));
     slPrint("   S", slLocate(31,20));
     slPrint("SSSS", slLocate(31,21));
-    
+
 
     slPrint("Dedicated to the man with one knee", slLocate(3,26));
 
@@ -2016,28 +2018,28 @@ void titleScreen()
 void getTime(jo_datetime* currentTime)
 {
     SmpcDateTime *time = NULL;
-    
+
     slGetStatus();
-    
+
     time = &(Smpc_Status->rtc);
-        
+
     currentTime->day = slDec2Hex(time->date);
     currentTime->year = slDec2Hex(time->year);
-    currentTime->month = time->month & 0x0f;   
-    
+    currentTime->month = time->month & 0x0f;
+
     currentTime->hour = (char)slDec2Hex(time->hour);
     currentTime->minute = (char)slDec2Hex(time->minute);
     currentTime->second = (char)slDec2Hex(time->second);
 }
 
 unsigned int getSeconds()
-{   
+{
     jo_datetime now = {0};
     unsigned int numSeconds = 0;
-    
+
     getTime(&now);
-    
-    numSeconds = now.second + (now.minute * 60) + (now.hour * (60*60)) + (now.day * (24*60*60));    
-    
+
+    numSeconds = now.second + (now.minute * 60) + (now.hour * (60*60)) + (now.day * (24*60*60));
+
     return numSeconds;
 }
