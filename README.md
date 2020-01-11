@@ -42,32 +42,32 @@ The bottom hud area lists the top four players and their current scores.
 ## Score
 When player one hit starts, the score is displayed. The fields mean the following:
 
-## R#
+### R#
 The player's rank among the other players. Can be 1-12. 
-## CHR
+### CHR
 The snake
-## L#
+### L#
 Current length of the snake
-## M#
+### M#
 Maximum length of the snake ever
-## A#
+### A#
 Number of apples eaten by the snake
-## K#
+### K#
 Number of times the snake has killed another player
-## C#
+### C#
 Number of times the snake has eaten another snake. This requires a head-on collision of two snakes and one snake must be at least 2x as big as the other. Eating another snake increases the player's length by the length of the consumed snake. 
-## D#
+### D#
 Number of times the snake has died
-## S#
+### S#
 Current score. Varies based on game-mode. 
 
-# Issues
+## Issues
 No known issues
 
-# Building
+## Building
 Requires joengine to build. Checkout source code folder to your joengine "Samples" directory and run "./compile.sh". 
 
-# Credits
+## Credits
 [Segaxtreme](http://www.segaxtreme.net/) - The best Sega Saturn development forum on the web. Thank you for all the advice from all the great posters on the forum.  
 [Sega Saturn Multiplayer Task Force](http://vieille.merde.free.fr/) - Other great Sega Saturn games with source code  
 [joengine](https://github.com/johannes-fetz/joengine) - Sega Saturn dev environment  
