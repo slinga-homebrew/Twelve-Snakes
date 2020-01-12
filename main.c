@@ -213,20 +213,19 @@ void jo_main(void)
     do
     {
         //
-        // Prompt the player for game mode and options
-        //
-        displayMenu(&gameOptions);
-
-        //
         // Initialize game specific things
         //
-        srand(getSeconds());
-        initializeFood(&theFood, '*');
         initializePlayerNumbers(players);
         memset(&deathGrid, 0, sizeof(deathGrid));
         clearScore(players);
+        srand(getSeconds());
+                
+        //
+        // Prompt the player for game mode and options
+        //
+        displayMenu(&gameOptions);
+        initializeFood(&theFood, '*');
 
-        gameOptions.startTime = getSeconds();
 
         //
         // Game play loop
@@ -1503,7 +1502,7 @@ int displayScoreBar(struct snake* players, struct options* gameOptions)
         }
 
         sprintf(temp, "%c", sortedPlayers[i].shape[0]);
-        slPrint(temp, slLocate(21 + i, 5));
+        slPrint(temp, slLocate(21 + counter, 5));
         counter++;
     }
 
@@ -1668,6 +1667,7 @@ void displayMenu(struct options* gameOptions)
     }while(1);
 
     clearScreen();
+    gameOptions->startTime = getSeconds();
 }
 
 int displaySubMenu(struct options* gameOptions, char* gameMode, int numSubOptions, struct suboptions* subOptions)
