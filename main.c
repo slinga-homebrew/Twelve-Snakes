@@ -1604,7 +1604,7 @@ void displayMenu(struct options* gameOptions)
         {
             slSynch();
         }
-        while(jo_is_input_key_pressed(0, JO_KEY_START));
+        while(jo_is_input_key_pressed(0, JO_KEY_START) || jo_is_input_key_pressed(0, JO_KEY_A) || jo_is_input_key_pressed(0, JO_KEY_B));
 
         // depending on the game type, there are suboptions
         switch(gameOptions->gameType)
@@ -1769,7 +1769,7 @@ int displaySubMenu(struct options* gameOptions, char* gameMode, int numSubOption
     {
         slSynch();
     }
-    while(jo_is_input_key_pressed(0, JO_KEY_START));
+    while(jo_is_input_key_pressed(0, JO_KEY_START) || jo_is_input_key_pressed(0, JO_KEY_A) || jo_is_input_key_pressed(0, JO_KEY_B));
 
 
     // user hit start, setup the game options
