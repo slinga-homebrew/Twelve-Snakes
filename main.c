@@ -199,10 +199,11 @@ void jo_main(void)
 
     // Initializing functions
     slInitSystem(TV_320x240, NULL, 1); // Initializes screen
+    jo_core_init(JO_COLOR_Black);
 
     if(g_DisplayedSSMTF == 0)
     {
-        //displaySSMTFPresents(); // SSMTF logo
+        displaySSMTFPresents(); // SSMTF logo
         g_DisplayedSSMTF = 1;
     }
     drawGrid(); // Draws the playing field box
@@ -219,7 +220,7 @@ void jo_main(void)
         memset(&deathGrid, 0, sizeof(deathGrid));
         clearScore(players);
         srand(getSeconds());
-                
+
         //
         // Prompt the player for game mode and options
         //
@@ -1074,7 +1075,7 @@ void displaySSMTFPresents()
 
 void displayText()
 {
-    slPrint("Twelve Snakes Version 3.0.0 by Slinga", slLocate(1,1));
+    slPrint("Twelve Snakes Version 3.0.1 by Slinga", slLocate(1,1));
 }
 
 void displayJoinText(struct snake* players, struct options* gameOptions)
