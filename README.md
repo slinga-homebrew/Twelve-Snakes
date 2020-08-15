@@ -68,6 +68,6 @@ No known issues
 Requires joengine to build. Checkout source code folder to your joengine "Samples" directory and run "./compile.sh". 
 
 ## Credits
-[Segaxtreme](http://www.segaxtreme.net/) - The best Sega Saturn development forum on the web. Thank you for all the advice from all the great posters on the forum.  
+[SegaXtreme](http://www.segaxtreme.net/) - The best Sega Saturn development forum on the web. Thank you for all the advice from all the great posters on the forum.  
 [Sega Saturn Multiplayer Task Force](http://vieille.merde.free.fr/) - Other great Sega Saturn games with source code  
 [joengine](https://github.com/johannes-fetz/joengine) - Sega Saturn dev environment  
